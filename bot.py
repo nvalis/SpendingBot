@@ -11,7 +11,6 @@ import datetime
 
 # TODO:
 #  + upgrade to database (sqlite for the start)
-#  + categories
 #  + stats per category, month, user (sql-like syntax?)
 #  + allow for multiple users as payers
 #  ? check for user expenses < 0
@@ -111,6 +110,34 @@ def list_categories(bot, update):
 
 	bot.sendMessage(chat_id=update.message.chat_id, text=message)
 
+def add_category(bot, update, args):
+	'''Add new category/categories to available categories.'''
+	global categories
+	logger.info('Add category command')
+
+	if len(args) < 1:
+		bot.sendMessage(chat_id=chat_id, text='/add_category <category_name> [<category2_name>] [...]')
+		return
+
+	category_names = [c.name for c in categories]
+	added = []
+	not_added = []
+	for category_name in args:
+		if category_name not in category_names:
+			categories.append(Category(category_name))
+			added.append(category_name)
+		else:
+			not_added.append(category_name)
+
+	message = ''
+	if added:
+		message += 'Added categories: {}'.format(', '.join(added))
+
+	if not_added:
+		message += '\nAlready existing: {}'.format(', '.join(not_added))
+
+	bot.sendMessage(chat_id=update.message.chat_id, text=message)
+
 def error_handler(bot, update, error):
 	bot.sendMessage('Syntax error or sth')
 	logger.warn('Update "{}" caused error "{}"'.format(update, error))
@@ -143,6 +170,7 @@ def main():
 	dp.add_handler(CommandHandler('stats', stats))
 	dp.add_handler(CommandHandler('log', backlog, pass_args=True))
 	dp.add_handler(CommandHandler('categories', list_categories))
+	dp.add_handler(CommandHandler('add_category', add_category, pass_args=True))
 	dp.add_error_handler(error_handler)
 
 	updater.start_polling()
