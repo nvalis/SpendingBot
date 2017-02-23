@@ -10,9 +10,8 @@ import pickle
 import datetime
 
 # TODO:
-#  + timestamp for expenses
 #  + categories
-#  + stats per category, month user (sql-like syntax?)
+#  + stats per category, month, user (sql-like syntax?)
 #  + allow for multiple users as payers
 #  ? check for user expenses < 0
 
