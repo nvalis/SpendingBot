@@ -16,6 +16,15 @@ import datetime
 #  + allow for multiple users as payers
 #  ? check for user expenses < 0
 
+
+# Data model classes, to be replaced by the database
+class Category:
+	def __init__(self, name):
+		self.name = name
+
+	def __repr__(self):
+		return '<Category {}>'.format(self.name)
+
 class Expense:
 	def __init__(self, user_id, amount):
 		self.amount = amount
