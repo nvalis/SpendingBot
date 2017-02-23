@@ -7,6 +7,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 import pickle
+import datetime
 
 # TODO:
 #  + timestamp for expenses
@@ -15,9 +16,14 @@ import pickle
 #  + allow for multiple users as payers
 #  ? check for user expenses < 0
 
-def test(bot, update):
-	logger.info('Test command')
-	bot.sendMessage(chat_id=update.message.chat_id, text=str(update))
+class Expense:
+	def __init__(self, user_id, amount):
+		self.amount = amount
+		self.datetime = datetime.datetime.now()
+		self.user_id = user_id
+
+	def __repr__(self):
+		return '<Expense: {}: {} ({})>'.format(self.user_id, self.amount, self.datetime)
 
 def update_expenses(bot, update, args):
 	global expenses, users
@@ -38,8 +44,9 @@ def update_expenses(bot, update, args):
 	if user.id not in users:
 		bot.sendMessage(chat_id=chat_id, text='Hello {}, initialized your expenses with 0.'.format(user.first_name))
 		users[user.id] = user
-		expenses[user.id] = 0
-	expenses[user.id] += amount
+		expenses[user.id] = []
+
+	expenses[user.id].append(Expense(user.id, amount))
 
 	if amount > 0:
 		text = 'Added {:.2f} to your expenses.'
@@ -51,10 +58,14 @@ def stats(bot, update):
 	global expenses, users
 	logger.info('Stats command')
 
-	overall = sum(expenses.values())
-	message = 'Overall expenses: {:.2f}\n'.format(overall)
-	for user_id, spending in expenses.items():
-		message += '{}: {:.2f}\n'.format(users[user_id].first_name, spending)
+	message = ''
+	overall_sum = 0
+	for user_id, user_expenses in expenses.items():
+		user_sum = sum([e.amount for e in user_expenses])
+		overall_sum += user_sum
+		message += '{}: {:.2f}\n'.format(users[user_id].first_name, user_sum)
+
+	message = 'Summed expenses: {:.2f}\n'.format(overall_sum) + message
 	bot.sendMessage(chat_id=update.message.chat_id, text=message)
 
 def error_handler(bot, update, error):
@@ -83,7 +94,6 @@ def main():
 	updater = Updater(token=open('token').read())
 
 	dp = updater.dispatcher
-	dp.add_handler(CommandHandler('test', test))
 	dp.add_handler(CommandHandler('spent', update_expenses, pass_args=True))
 	dp.add_handler(CommandHandler('stats', stats))
 	dp.add_error_handler(error_handler)
