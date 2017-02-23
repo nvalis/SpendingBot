@@ -10,6 +10,7 @@ import pickle
 import datetime
 
 # TODO:
+#  + upgrade to database (sqlite for the start)
 #  + categories
 #  + stats per category, month, user (sql-like syntax?)
 #  + allow for multiple users as payers
