@@ -26,6 +26,7 @@ class Expense:
 		return '<Expense: {}: {} ({})>'.format(self.user_id, self.amount, self.datetime)
 
 def update_expenses(bot, update, args):
+	'''Allows to add a new expense. Expenses can also have a negative amount.'''
 	global expenses, users
 	logger.info('Update expenses command, args={}'.format(args))
 	chat_id = update.message.chat_id
@@ -54,7 +55,31 @@ def update_expenses(bot, update, args):
 		text = 'Subtracted {:.2f} from your expenses.'
 	bot.sendMessage(chat_id=chat_id, text=text.format(amount))
 
+def backlog(bot, update, args):
+	'''Backlog of the last n expenses.'''
+	global expenses, users
+	logger.info('Backlog command, args={}'.format(args))
+
+	if len(args) > 1:
+		bot.sendMessage(chat_id=chat_id, text='/log [<number_of_expenses>]')
+		return
+
+	if len(args) == 1:
+		try:
+			number_of_expenses = int(args[0])
+		except ValueError:
+			error_handler(bot, update, 'ValueError')
+	else:
+		number_of_expenses = 5
+
+	# TODO:
+	#  - sort all expenses by date
+	#  - return last number_of_expenses
+
+	bot.sendMessage(chat_id=update.message.chat_id, text='Not yet implemented, sorry')
+
 def stats(bot, update):
+	'''Gives a summed and per-user overview of the expenses.'''
 	global expenses, users
 	logger.info('Stats command')
 
@@ -96,6 +121,7 @@ def main():
 	dp = updater.dispatcher
 	dp.add_handler(CommandHandler('spent', update_expenses, pass_args=True))
 	dp.add_handler(CommandHandler('stats', stats))
+	dp.add_handler(CommandHandler('log', backlog, pass_args=True))
 	dp.add_error_handler(error_handler)
 
 	updater.start_polling()
