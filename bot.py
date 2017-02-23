@@ -102,6 +102,15 @@ def stats(bot, update):
 	message = 'Summed expenses: {:.2f}\n'.format(overall_sum) + message
 	bot.sendMessage(chat_id=update.message.chat_id, text=message)
 
+def list_categories(bot, update):
+	'''Lists the currently available categories.'''
+	global categories
+	logger.info('List categories command')
+
+	message = 'Categories: ' + ', '.join([c.name for c in categories])
+
+	bot.sendMessage(chat_id=update.message.chat_id, text=message)
+
 def error_handler(bot, update, error):
 	bot.sendMessage('Syntax error or sth')
 	logger.warn('Update "{}" caused error "{}"'.format(update, error))
@@ -112,7 +121,7 @@ def dump_to_file(expenses, users):
 	logger.info('Dumped expenses and users to file.')
 
 def main():
-	global expenses, users
+	global expenses, users, categories
 	try:
 		expenses = pickle.load(open('expenses.p', 'rb')) # user_id:expenses
 	except FileNotFoundError:
@@ -125,12 +134,15 @@ def main():
 		logger.warn('Users file not found! Starting with empty one.')
 		users = {}
 
+	categories = [Category('grocery'), Category('car'), Category('hobby')]
+
 	updater = Updater(token=open('token').read())
 
 	dp = updater.dispatcher
 	dp.add_handler(CommandHandler('spent', update_expenses, pass_args=True))
 	dp.add_handler(CommandHandler('stats', stats))
 	dp.add_handler(CommandHandler('log', backlog, pass_args=True))
+	dp.add_handler(CommandHandler('categories', list_categories))
 	dp.add_error_handler(error_handler)
 
 	updater.start_polling()
